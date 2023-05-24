@@ -10,14 +10,12 @@ import {
   Popper,
   Stack,
   TextField,
-  Typography,
 } from "@mui/material";
 import classnames from "classnames";
 import styled from "@emotion/styled";
 import moment from "moment";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import ClearIcon from "@mui/icons-material/Clear";
-import RemoveIcon from "@mui/icons-material/Remove";
 import PropTypes from "prop-types";
 import RangeSelector from "./rangeSelector/rangeSelector";
 import { reverseRange } from "./helper";
@@ -29,20 +27,10 @@ const RangeTextField = styled(TextField)({
   },
 });
 
-const RangeField = styled(Typography)({
-  fontSize: "inherit",
-  textAlign: "center",
-});
-
-const RangeContainer = styled(Box)({
-  width: "11rem",
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-});
-
 const PreDefinedRangeButton = styled(Button)({
   textTransform: "none",
+  display:"flex",
+  justifyContent:"flex-start"
 });
 
 const defaultRange = { startDate: null, endDate: null };
