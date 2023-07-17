@@ -92,7 +92,7 @@ function App() {
         <Demo text="Double Selector Date Range Picker" noOfSelector={2} />
         <Demo
           text="Pre defined ranges"
-          noOfSelector={1}
+          noOfSelector={2}
           leftPanelRanges={getPredefinedDateRanges()}
         />
         <Demo

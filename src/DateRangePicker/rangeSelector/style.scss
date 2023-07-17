@@ -75,7 +75,7 @@
 
     .range-selected {
         border-color: transparent;
-        background-color: rgba(33, 150, 243, 0.12);
+        background-color: #E7EEF9;
     }
 
     .date-cell-btn {
@@ -94,13 +94,13 @@
     }
 
     .date-cell-selected-btn {
-        background: rgb(33, 150, 243);
+        background: #1976D2;
         color: rgb(255, 255, 255);
     }
 
-    .date-cell-selected-btn:hover {
-        background: #002884 !important;
-    }
+     .date-cell-selected-btn:hover {
+        background: #1976D2;
+     }
 
     .date-cell-outsideRange-btn:hover {
         border: 1px solid !important;

@@ -29,8 +29,17 @@ const RangeTextField = styled(TextField)({
 
 const PreDefinedRangeButton = styled(Button)({
   textTransform: "none",
-  display:"flex",
-  justifyContent:"flex-start"
+  display: "flex",
+  justifyContent: "flex-start",
+  padding: "4px",
+  "&.MuiButton-text": {
+    color: "#000000",
+  },
+  "&.MuiButton-contained": {
+    background: "#EDF4FB",
+    color: "#1976D2",
+    boxShadow: "none",
+  },
 });
 
 const defaultRange = { startDate: null, endDate: null };
@@ -38,9 +47,10 @@ const defaultRange = { startDate: null, endDate: null };
 function DateRangePicker(props) {
   const {
     onRangeChange,
+    onStartDateChange,
+    onEndDateChange,
     value,
     noOfSelector,
-    keepSelectorOpen,
     format,
     leftPanelRanges,
     minDate,
@@ -54,6 +64,7 @@ function DateRangePicker(props) {
   const [dateRange, setDateRange] = useState(defaultRange);
   const [hoveredEndDate, setHoveredEndDate] = useState(null);
   const [textFieldEl, setTextFieldEl] = useState();
+  const [isHovered, setIsHovered] = useState(false);
 
   const { startDate, endDate } = dateRange;
 
@@ -84,22 +95,22 @@ function DateRangePicker(props) {
 
     if (startDate && endDate) {
       setDateRange({ startDate: date, endDate: null });
+      onStartDateChange?.(date);
     } else if (startDate) {
       const ranges = reverseRange(startDate, date);
       setDateRange((prev) => ({ ...prev, ...ranges }));
-      onRangeChange?.(ranges);
-      !keepSelectorOpen && closeRangeSelector();
+      ranges.reversed && onStartDateChange?.(ranges.startDate);
+      onEndDateChange?.(ranges.endDate);
     } else {
       setDateRange((prev) => ({ ...prev, startDate: date }));
+      onStartDateChange?.(date);
     }
     setHoveredEndDate(null);
   };
 
   const handlePredefinedRangeSelection = (range) => {
     setDateRange(range);
-    onRangeChange?.(range);
     setActiveMonth(range.startDate);
-    !keepSelectorOpen && closeRangeSelector();
   };
 
   const handleClearSelectedRange = (evt) => {
@@ -127,10 +138,19 @@ function DateRangePicker(props) {
     setHoveredEndDate(null);
   };
 
+  const onOk = () => {
+    if (startDate && endDate) {
+      onRangeChange?.(dateRange);
+      closeRangeSelector();
+    }
+  };
+
   return (
     <Box sx={{ width: "fit-content" }}>
       <RangeTextField
         {...restProps}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         disabled={disabled}
         autoComplete="off"
         inputProps={{ ...restProps?.inputProps, readOnly: true }}
@@ -160,7 +180,8 @@ function DateRangePicker(props) {
                 disabled={disabled}
                 size="small"
                 sx={{
-                  visibility: startDate || endDate ? "visible" : "hidden",
+                  visibility:
+                    (startDate || endDate) && isHovered ? "visible" : "hidden",
                 }}
                 onClick={handleClearSelectedRange}
               >
@@ -199,46 +220,64 @@ function DateRangePicker(props) {
                   }}
                   direction="row"
                 >
-                  {Array.from({ length: noOfSelector }).map((_, i) => (
-                    <Fragment key={i}>
-                      <RangeSelector
-                        {...{ minDate, maxDate, dateRange, hoveredEndDate }}
-                        onPrevMonth={handlePrevMonth}
-                        onNextMonth={handleNextMonth}
-                        showMonth={moment(activeMonth).add(i, "month")}
-                        onRangeSelection={handleDateRangeSelection}
-                        onEndDateHover={handleEndDateHover}
-                        hidePrev={i !== 0}
-                        hideNext={i + 1 !== noOfSelector}
-                      />
-                      {noOfSelector !== 1 && i + 1 !== noOfSelector && (
-                        <Divider orientation="vertical" flexItem />
-                      )}
-                    </Fragment>
-                  ))}
+                  <Box>
+                    <Stack direction="row">
+                      {Array.from({ length: noOfSelector }).map((_, i) => (
+                        <Fragment key={i}>
+                          <RangeSelector
+                            {...{ minDate, maxDate, dateRange, hoveredEndDate }}
+                            onPrevMonth={handlePrevMonth}
+                            onNextMonth={handleNextMonth}
+                            showMonth={moment(activeMonth).add(i, "month")}
+                            onRangeSelection={handleDateRangeSelection}
+                            onEndDateHover={handleEndDateHover}
+                            hidePrev={i !== 0}
+                            hideNext={i + 1 !== noOfSelector}
+                          />
+                          {((noOfSelector !== 1 && i + 1 !== noOfSelector) ||
+                            !!leftPanelRanges.length) && (
+                            <Divider orientation="vertical" flexItem />
+                          )}
+                        </Fragment>
+                      ))}
+                    </Stack>
+                    <Stack
+                      direction="row"
+                      justifyContent="flex-end"
+                      gap="12px"
+                      sx={{ p: 1 }}
+                    >
+                      <Button size="small" onClick={closeRangeSelector}>
+                        cancel
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        disabled={!(startDate & endDate)}
+                        onClick={onOk}
+                      >
+                        ok
+                      </Button>
+                    </Stack>
+                  </Box>
                   {!!leftPanelRanges.length && (
-                    <>
-                      <Divider orientation="vertical" flexItem />
-                      <Stack sx={{ minWidth: "150px", pl: 1 }} gap="4px">
-                        {leftPanelRanges.map((definedRange, index) => (
-                          <PreDefinedRangeButton
-                            key={index}
-                            variant={classnames({
-                              contained: definedRange.isSelected(dateRange),
-                              text: !definedRange.isSelected(dateRange),
-                            })}
-                            size="small"
-                            onClick={() =>
-                              handlePredefinedRangeSelection(
-                                definedRange.range()
-                              )
-                            }
-                          >
-                            {definedRange.label}
-                          </PreDefinedRangeButton>
-                        ))}
-                      </Stack>
-                    </>
+                    <Stack sx={{ minWidth: "150px", pl: 1 }} gap="4px">
+                      {leftPanelRanges.map((definedRange, index) => (
+                        <PreDefinedRangeButton
+                          key={index}
+                          variant={classnames({
+                            contained: definedRange.isSelected(dateRange),
+                            text: !definedRange.isSelected(dateRange),
+                          })}
+                          size="small"
+                          onClick={() =>
+                            handlePredefinedRangeSelection(definedRange.range())
+                          }
+                        >
+                          {definedRange.label}
+                        </PreDefinedRangeButton>
+                      ))}
+                    </Stack>
                   )}
                 </Stack>
               </ClickAwayListener>
@@ -252,10 +291,10 @@ function DateRangePicker(props) {
 
 DateRangePicker.propTypes = {
   onRangeChange: PropTypes.func.isRequired,
-  keepSelectorOpen: PropTypes.bool,
+  onStartDateChange: PropTypes.func,
+  onEndDateChange: PropTypes.func,
   format: PropTypes.string,
   disabled: PropTypes.bool,
-
   leftPanelRanges: PropTypes.arrayOf(
     PropTypes.shape({
       label: PropTypes.string,
@@ -282,7 +321,6 @@ DateRangePicker.propTypes = {
 
 DateRangePicker.defaultProps = {
   noOfSelector: 2,
-  keepSelectorOpen: false,
   format: "DD/MM/YYYY",
   value: defaultRange,
   leftPanelRanges: [],
